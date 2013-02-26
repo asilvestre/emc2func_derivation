@@ -9,7 +9,6 @@ instance Eq Expression where
 	UnExp op x == UnExp op' x' = op == op' && x == x'
 	BiExp Sum x y == BiExp Sum x' y' = (x == x' && y == y') || (x == y' && y == x')
 	BiExp Diff x y == BiExp Diff x' y' = (x == x' && y == y') || (x == y' && y == x')
-	BiExp Diff x y == BiExp Diff x' y' = x == x' && y == y'
 	BiExp Div x y == BiExp Div x' y' = x == x' && y == y'
 	BiExp Mul x y == BiExp Mul x' y' = (x == x' && y == y') || (x == y' && y == x')
 	BiExp Pow x y == BiExp Pow x' y' = x == x' && y == y'
@@ -74,6 +73,7 @@ exact (V x) (V x') = x == x'
 exact (BiExp op e1 e2) (BiExp op' e1' e2') = op == op && (exact e1 e1') && (exact e2 e2')
 exact (UnExp op e) (UnExp op' e') = op == op && (exact e e')
 
+
 simplify :: Expression -> Expression
 simplify (BiExp op (C x) (C x')) = C (realfunc op x x')
 simplify (BiExp Sum e (C 0)) = simplify e
@@ -87,7 +87,6 @@ simplify (BiExp Mul e (C 0)) = C 0
 simplify (BiExp Mul (C 1) e) = simplify(e)
 simplify (BiExp Mul e (C 1)) = simplify(e)
 simplify (BiExp Mul e e') = if e == e' then simplify(e) ^: (C 2) else simplify(e) *: simplify(e')
-simplify (BiExp Mul (C 1) e) = simplify e
 simplify (BiExp Div (C 0) e) = C 0 
 simplify (BiExp Div e (C 1)) = simplify e
 simplify (BiExp Div e e') = if e == e' then C 1 else simplify(e) -: simplify(e')

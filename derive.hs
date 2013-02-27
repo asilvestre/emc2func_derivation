@@ -12,21 +12,22 @@ instance Eq Expression where
 	BiExp Div x y == BiExp Div x' y' = x == x' && y == y'
 	BiExp Mul x y == BiExp Mul x' y' = (x == x' && y == y') || (x == y' && y == x')
 	BiExp Pow x y == BiExp Pow x' y' = x == x' && y == y'
+	_ == _ = False
 	
 
 instance Show Expression where
 	show (C x) = show x
-	show (V x) = show x
+	show (V x) = x:[]
 	show (UnExp Sqrt e1) = "sqrt(" ++ show e1 ++ ")"
 	show (UnExp Sin e1) = "sin(" ++ show e1 ++ ")"
 	show (UnExp Cos e1) = "cos(" ++ show e1 ++ ")"
 	show (UnExp Ln e1) = "ln(" ++ show e1 ++ ")"
-	show (UnExp Exp e1) = "e^(" ++ show e1 ++ ")"
-	show (BiExp Sum e1 e2) = show e1 ++ " + " ++ show e2
+	show (UnExp Exp e1) = "e^" ++ show e1 ++ ""
+	show (BiExp Sum e1 e2) = "(" ++ show e1 ++ " + " ++ show e2 ++ ")"
 	show (BiExp Diff e1 e2) = show e1 ++ " - " ++ show e2
-	show (BiExp Div e1 e2) = "(" ++ show e1 ++ ") / (" ++ show e2 ++ ")"
-	show (BiExp Mul e1 e2) = "(" ++ show e1 ++ ") * (" ++ show e2 ++ ")"
-	show (BiExp Pow e1 e2) = "(" ++ show e1 ++ ")^(" ++ show e2 ++ ")"
+	show (BiExp Div e1 e2) = "(" ++ show e1 ++ " / " ++ show e2 ++ ")"
+	show (BiExp Mul e1 e2) = "(" ++ show e1 ++ " * " ++ show e2 ++ ")"
+	show (BiExp Pow e1 e2) = "" ++ show e1 ++ "^" ++ show e2 ++ ""
 
 
 (+:) a b = BiExp Sum a b
@@ -72,6 +73,7 @@ exact (C x) (C x') = x == x'
 exact (V x) (V x') = x == x'
 exact (BiExp op e1 e2) (BiExp op' e1' e2') = op == op && (exact e1 e1') && (exact e2 e2')
 exact (UnExp op e) (UnExp op' e') = op == op && (exact e e')
+exact _ _ = False
 
 
 simplify :: Expression -> Expression
@@ -92,4 +94,8 @@ simplify (BiExp Div e (C 1)) = simplify e
 simplify (BiExp Div e e') = if e == e' then C 1 else simplify(e) -: simplify(e')
 simplify (BiExp Pow e (C 1)) = simplify e
 simplify (BiExp Pow e (C 0)) = C 1
-simplify e = let e' = simplify e in if exact e e' then e else simplify e'
+simplify (BiExp op e e') = BiExp op (simplify e) (simplify e')
+simplify (UnExp op e ) = UnExp op (simplify e)
+simplify e = e
+
+simplifier e = let e' = simplify e in if exact e e' then e else simplifier e'
